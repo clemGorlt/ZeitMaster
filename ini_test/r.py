@@ -27,16 +27,17 @@ def printArray(array):
 
 def processArray(array):
 	print('processing the array...')
-	#minDiff=strToDate('Mon, 1 Jan 1900 00:00:00 UTC',fmt_HTTP)
-	minDiff=timedelta(microseconds=0)
+
+	minDiff=timedelta(days=2)#suppose to be max possible delta
 	maxDiff=timedelta(microseconds=0)
 	avgDiff=timedelta(microseconds=0)
-	
 	for d in array:
 		if d.derivation>maxDiff:
 			maxDiff=d.derivation
 		if d.derivation<minDiff:
 			minDiff=d.derivation
+		avgDiff+=d.derivation
+
 	avgDiff/=len(array)
 	print('finished')
 	print(minDiff,'<',avgDiff,'<',maxDiff)
@@ -44,7 +45,6 @@ def processArray(array):
 fmt='%b %d, %Y %H:%M:%S.%f'
 fmt_HTTP='%a, %d %b %Y %H:%M:%S %Z'#example: Sun, 16 Sep 2012 12:50:01 GMT
 derivArray=[]
-print("BEGIN")
 argParser = argparse.ArgumentParser(description='Zeitmaster: pcap time Analyser')
 argParser.add_argument('-f',action='append', help='Filename')
 args = argParser.parse_args()
@@ -54,6 +54,7 @@ if args.f is not None:
 	debut=0
 	fin=0
 	for line in sys.stdin:
+		print("BEGIN\n processing data from pcap")
 		print(line)
 		#frame.time/ip.proto/udp.port/tcp.port/http.response->1 true|0 false/http.date/frame.number
 		tab=line.split("\\")
@@ -68,13 +69,13 @@ if args.f is not None:
 			print("HTTP")
 			print(repr(tab[4]))
 			if tab[4]=='1':
-				fmt_HTTP='%a, %d %b %Y %H:%M:%S %Z'#example: Sun, 16 Sep 2012 12:50:01 GMT
 				frame=strToDate(tab[0],fmt)
 				http=strToDate(tab[5],fmt_HTTP)
 				d=tuple(tab[6].rstrip('\n'),(frame-http))
 				derivArray.append(d)
 		i=i+1
 		fin=tab[0]
+		print("finished processing data from pcap")
 	print(" debut/fin: ",debut,"/",fin)
 	#print(repr(fin))
 	debut=strToDate(debut,fmt)
